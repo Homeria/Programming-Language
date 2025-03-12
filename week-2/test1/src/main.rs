@@ -240,6 +240,164 @@ fn main() {
                 println!("제어문 실습 - Success!");
             
 
+    // 소유권(Ownership)
+
+        // 소유권이란?
+
+            // Rust 프로그램이 메모리를 관리하는 규칙
+                // 모든 Rust의 값에는 소유자가 있다
+                // 단 하나의 소유자만이 존재할 수 있다
+                // 소유자가 scope를 벗어나면 값은 삭제된다
+
+            // 다른 언어와 달리 Garvage Collector가 없음
+                // 소유권을 통해 더 이상 사용되지 않는 경우 메모리 삭제
+                // 컴파일 단계에서 소유권에 대한 확인이 이루어짐
+
+            // 변수 Scope
+                // 변수가 선언된 블록 내에서만 유효
+                // 블록을 벗어나면 변수는 삭제됨
+
+        // String 타입
+            // heap 메모리에 저장
+                // 일반 문자열과 달리 수정이 가능
+                // push_str()을 통해 문자열을 붙임
+                    let mut s = String::from("Hello");
+                    s.push_str((", World!"));
+                    println!("소유권 - String 타입 : {s}");
+
+            // Scope에서 벗어날 시 자동으로 메모리 할당 하제
+                // Garbage 누수 문제 방지
+                // Garbage Collector로 인한 성능 저하 X
+                // 내부적으로 drop 함수 호출
+                    let s = String::from("Hello");
+                // scope(괄호)에서 벗어나면 drop 함수 자동 호출
+
+        // 변수와 데이터 간 상호작용 : 이동
+            // 정수형 등 단순한 데이터 타입은 단순 복사
+                let x = 5;
+                let y = x;
+            // String 타입은 Heap에 저장된 데이터는 복사되지 않음
+            // 문자열을 가리키는 포인터, 길이, 용량만 복사됨
+                let s1 = String::from("hello");
+                let s2 = s1;
+                // s1의 ptr = s2의 ptr
+                // s1의 len = s2의 len
+                // s1의 capacity = s2의 capacity
+                // s1의 소유권을 박탈하고 s2의 소유권을 주게 됨 == s1은 더 이상 유효하지 않음
+            // Rust에서는 자동으로 deep copy(Heap에 저장된 데이터 복사)를 실시하지 않음
+
+        // 변수와 데이터 간 상호작용 방식 : 클론
+            // Heap에 저장된 데이터를 복사하려면 clone 사용용
+
+        // 스택에만 저장되는 데이터 : 복사
+            // 아래 데이터 타입은 copy trait을 구현하며, 항상 값을 복사함
+                // 숫자 (정수형, 부동 소수점 타입)
+                // Boolean
+                // char (character)
+                // Tuple (Copy Trait을 구현한 데이터만 포함된 경우)
+        
+        // 소유권과 함수
+            // 함수에 변수를 전달하는 경우 변수 생성과 마찬가지로 이동이나 복사 과정이 진행됨됨
+                let s = String::from("Hello");
+                takes_ownership(s);
+                //println!("{s}")
+
+        // 반환 값과 Scope
+            // 튜플 형식으로 소유권을 다시 돌려줄 수 있음
+                let s1 = String::from("Hello");
+                let (s2, len) = calculate_length(s1);
+                println!("소유권 - 반환 값과 Scope : The length of '{s2}' is {len}");
+
+        // 실습
+            let s = String::from("Hello World");
+            // 소유권 반환받기
+            let s = print_str_1(s);
+            // Parameter를 s의 clone으로 전달
+            print_str_2(s.clone());
+            println!("소유권 반환 - {}", s);
+
+        // 참조와 대여
+            // 소유권을 넘기는 대신 개체의 참조자 넘기기 - 대여(borrow)
+            // 참조된 값은 수정 불가가
+            // 가변 참조자를 사용하면 참조된 값 수정 가능
+                let s1 = String::from("Hello");
+                let len = calculate_length_2(&s1);
+                println!("소유권 - 참조와 대여 : The length of '{s1}' is {len}");
+            // 가변 참조자가 제한된 이유
+                // 데이터 경합(Data Race) 방지
+                    // 둘 이상의 포인터가 동시에 같은 데이터에 접근
+                    // 포인터 중 하나 이상이 데이터에 쓰기 작업을 시행
+                    // 데이터 접근 동기화 메커니즘이 없음
+                    // 이러한 경우 실행 순서에 따라 다른 결과가 발생할 수 있음
+                // A와 B가 같은 데이터에 동시에 접근하는 경우
+                // 다음과 같은 방법으로 메모리 안전성 보장
+                    // 단 하나의 가변 참조자 혹은 여러 개의 불변 참조자
+                    // 참조자는 항상 유효해야 함
+            // 참조자 + 가변 참조자
+                let mut s = String::from("hello");
+
+                let r1 = &s; // no problem
+                let r2 = &s; // no problem
+                //let r3 = &mut s; // BIG PROBLEM
+            // 가변 참조자 생성이 허용되는 경우
+                // 이미 생성된 가변 참조자가 사라진 경우
+                    let mut s = String::from("hello");
+                    {
+                        let r1 = &mut s;
+                    }
+                    // scope 이탈로 r1은 사라짐 -> 다시 가변 참조자 생성 가능능
+                    let r2 = &mut s;
+                // 가변 참조자 생성 이후 참조자가 사용되지 않는 경우
+                    let mut s = String::from("hello");
+                    let r1 = &s;
+                    let r2 = &s;
+                    println!("가변 참조자 생성 - {}, {}", r1, r2);
+                    // variables r1 and r2 will not be used after this point
+                    let r3 = &mut s;
+                    println!("가변 참조자 - {}", r3);
+
+            // Dangling Reference
+                // 포인터가 남아있는 상태에서 메모리 해제
+                // 참조자를 생성하는 대신 String을 직접 반환
+
+            // 실습
+                let mut s = String::from("hello, ");
+                // 참조값만 줌
+                let p = &mut s;
+                p.push_str("world");
+                println!("가변 참조자 실습 - Sucess!");
+                
+                let mut s = String::from("hello, ");
+                let r1 = &mut s;
+                r1.push_str("world");
+                
+                // 2번 이상 가변 참조할 수 없으므로 print를 지워야 함
+                let r2 = &mut s;
+                r2.push_str("!");
+                //println!("{}", r1);
+        // 슬라이스 타입
+            // 컬렉션의 일부 요소만 참조하는 것
+                // start .. end => [start <= x < end]
+                // start .. => [start <= x]
+                // .. end => [x <= end]
+                // .. => [x]
+                // start ..= end => [start <= x <= end]
+                // ..= end => [x <= end]
+                let s = String::from("hello world");
+                let hello = &s[0..5]; // 0부터 5까지, 'h', 'e', 'l', 'l', 'o', ' '
+                let world = &s[6..11]; // 6부터 11까지, 'w', 'o', 'r', 'l', 'd'
+                println!("슬라이스 타입 - {}, {}", hello, world);
+
+            // ex) 공백으로 구분되는 첫 단어 찾는 코드 - first_word 함수
+            // 슬라이스가 있는 상태에서 내용 변경 불가
+            // 숫자 배열 등에도 활용 가능
+                let a = [1, 2, 3, 4, 5];
+                let slice = &a[1..3];
+                assert_eq!(slice, &[2, 3]);
+                println!("슬라이스 타입 - Success!");
+                
+
+
 }
 
 fn another_function_1() {
@@ -273,4 +431,37 @@ fn sum_all_2(list: [i32; 5]) -> i32 {
     list.iter().sum()
 }
 
+fn takes_ownership(some_string: String) {
+    println!("{}", some_string);
+}
 
+fn calculate_length(s: String) -> (String, usize) {
+    let length = s.len();
+
+    (s, length)
+}
+
+fn calculate_length_2(s: &String) -> usize {
+    s.len()
+}
+
+fn print_str_1(s: String) -> String {
+    println!("{}", s);
+    s
+}
+
+fn print_str_2(s: String) {
+    println!("{}", s);
+}
+
+fn first_world(s: &String) -> &str {
+    let bytes = s.as_bytes();
+
+    // 복습하면서 보충 필요
+    for (i, &item) in bytes.iter().enumerate() {
+        if item == b' ' {
+            return &s[0..i];
+        }
+    }
+    &s[..]
+}
