@@ -9,7 +9,13 @@ pub mod problems {
     /// assert_eq!(sum(100), 5050);
     /// ```
     pub fn sum(n: i32) -> i32 {
-        -1
+        if n >= 0 {
+            // n이 0보다 크거나 같을 경우
+            ( n * (n + 1) ) / 2
+        } else {
+            // n이 0보다 작을 경우
+            0
+        }
     }
 
     /// 1에서 n까지의 정수의 곱을 구하는 함수 factorial을 작성하라
@@ -22,7 +28,30 @@ pub mod problems {
     /// assert_eq!(factorial(5), 120);
     /// ```
     pub fn factorial(n: i32) -> i32 {
-        -1
+        if n <= 0 {
+            0
+        } else {
+            // factorial을 구하기 위한 mut 키워드를 넣은 변수 선언
+            let mut result = 1;
+
+            // 1. for문을 이용한 방법 - for .. in ..
+            // 1..n은 1부터 n-1까지, 1..=n은 1부터 n까지
+            for i in 1..=n {
+                result *= i;
+            }
+
+            // 2. while 문을 이용한 방법
+            /*
+            cnt는 n부터 1까지 감소하며, 0이 되면 while문은 종료되어 result를 반환환
+            let mut cnt = n;
+            while cnt > 0 {
+                result *= cntl
+                cnt -= 1;
+            }
+            */
+
+            result
+        }
     }
 
     /// 반지름이 r인 원의 넓이를 구하는 함수 circle을 작성하라
@@ -35,7 +64,13 @@ pub mod problems {
     /// assert_eq!(circle(4.2), 55.389595);
     /// ```
     pub fn circle(r: f32) -> f32 {
-        -1.0
+        if r <= 0.0 {
+            // r이 0보다 작거나 같을 경우
+            0.0
+        } else {
+            // r이 0보다 클 경우
+            3.14 * r * r
+        }
     }
 
     /// 문자열의 앞에 "Hello "를 삽입하는 함수 concat을 작성하라
@@ -49,7 +84,21 @@ pub mod problems {
     /// assert_eq!(concat("Alice!"), "Hello Alice!");
     /// ```
     pub fn concat(str: &str) -> String {
-        String::new()
+        /*
+        문자열 생성 방법
+        1. let mut s = String::new();
+        2. let s = "initial contents".to_string();
+        3. let s = String::from("initial contents");
+         */
+        let mut s = String::from("Hello ");
+
+        /*
+        문자열 업데이트
+        1. 단어 붙이기 : s.push_str("abc");
+        2. 글자 붙이기 : s.push('a');
+         */
+        s.push_str(str);
+        s
     }
 
     /// 논리연산자 xor를 계산하는 함수 xor를 작성하라
@@ -65,7 +114,13 @@ pub mod problems {
     /// assert_eq!(xor(false, false), false);
     /// ```
     pub fn xor(x: bool, y: bool) -> bool {
-        false
+        if (x && y) || (!x && !y) {
+            // x와 y가 모두 true이거나 둘 다 false인 경우 false를 반환
+            false
+        } else {
+            // x와 y 둘 중 하나가 true, 나머지 하나가 false인 경우 true를 반환환
+            true
+        }
     }
 
     /// 리스트에서 가장 큰 값을 찾아서 반환하는 함수 max를 작성하라.
@@ -79,7 +134,18 @@ pub mod problems {
     /// assert_eq!(max([5, 4, 3, 2, 1]), 5);
     /// ```
     pub fn max(list: [u32; 5]) -> u32 {
-        0
+        // 리스트의 첫 번째 원소를 max로 설정
+        // 이는 max에 list[0]의 값을 복사한 것것
+        let mut max = list[0];
+
+        // 리스트를 iter 하며 if 하며 max를 찾음
+        for &i in list.iter() {
+            // i도 max와 마찬가지로 주소를 받은 것 -> 리스트 안 값은 &i를 사용
+            if i > max {
+                max = i;
+            }
+        }
+        max
     }
 
     /// 세 정수를 변의 길이로 가지는 삼각형이 존재하는지 확인하는 함수 triangle을 작성하라.
